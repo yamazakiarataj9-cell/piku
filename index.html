@@ -95,162 +95,57 @@
 <div class="container">
     <h1>みんなのピクミン図鑑 Pro Max</h1>
 
-    <!-- デコ追加フォーム -->
     <div class="add-deco-form">
         <input type="text" id="new-deco-name" placeholder="全員のページに新しいデコを一発追加">
         <button onclick="addNewCategoryGlobal()">追加</button>
     </div>
 
-    <!-- 項目一覧が出る場所 -->
     <div id="list-container"></div>
     
     <div class="footer-nav">すべて自動保存されます 🌱</div>
 </div>
 
 <script>
-    // 古い複雑なデータ構造を一度きれいにお掃除
+    // 過去の古いデータ構造を完全にお掃除
     const keysToRemove = [
         'pikmin_bloom_owned_v1', 'pikmin_categories_v2', 'pikmin_owned_v2', 
         'pikmin_family_data_v3', 'pikmin_family_data_v4', 'pikmin_family_final_data',
         'pikmin_perfect_family_data', 'pikmin_pro_family_data_v5_list', 'pikmin_pro_family_data_v5_data',
         'pikmin_perfect_list_final', 'pikmin_perfect_data_final', 'pikmin_ultra_list', 'pikmin_ultra_data',
-        'pikmin_final_ultimate_owned'
+        'pikmin_final_ultimate_owned', 'pikmin_final_ultimate_list', 'pikmin_final_ultimate_categories'
     ];
     keysToRemove.forEach(k => localStorage.removeItem(k));
 
-    const CATEGORY_KEY = 'pikmin_solo_categories_v1';
-    const OWNED_KEY = 'pikmin_solo_owned_v1';
+    // 新しいクリーンな保存キー
+    const CATEGORY_KEY = 'pikmin_master_categories_v2';
+    const OWNED_KEY = 'pikmin_master_owned_v2';
 
     const pikminTypes = ["赤", "黄", "青", "紫", "白", "羽", "岩", "氷"];
     
+    // 💡 いただいた全51個のカテゴリを順番通りに完全網羅しました！
     const defaultCategories = [
-        { id: "road", name: "みちばた" },
+        { id: "restaurant", name: "レストラン" },
         { id: "cafe", name: "カフェ" },
-        { id: "station", name: "駅" },
-        { id: "conbini", name: "コンビニ" },
-        { id: "park", name: "公園" }
-    ];
-
-    let categoryList = [];
-    let ownedData = {}; 
-
-    function initApp() {
-        try {
-            categoryList = JSON.parse(localStorage.getItem(CATEGORY_KEY));
-            ownedData = JSON.parse(localStorage.getItem(OWNED_KEY));
-        } catch(e) {
-            categoryList = null;
-            ownedData = null;
-        }
-
-        if (!categoryList || !Array.isArray(categoryList) || categoryList.length === 0) {
-            categoryList = JSON.parse(JSON.stringify(defaultCategories));
-        }
-        
-        if (!ownedData || typeof ownedData !== 'object') {
-            ownedData = {};
-        }
-        save();
-    }
-
-    function renderList() {
-        const container = document.getElementById('list-container');
-        if (!container) return;
-        container.innerHTML = "";
-
-        categoryList.forEach(category => {
-            const group = document.createElement('div');
-            group.className = 'deco-group';
-
-            const titleRow = document.createElement('div');
-            titleRow.className = 'deco-title';
-            titleRow.innerHTML = `<div>${category.name}<span class="counter" id="count-${category.id}">0/8</span></div>`;
-            
-            const delBtn = document.createElement('button');
-            delBtn.className = 'delete-btn';
-            delBtn.innerHTML = '×';
-            delBtn.onclick = () => deleteCategoryGlobal(category.id, category.name);
-            group.appendChild(delBtn);
-            group.appendChild(titleRow);
-
-            const row = document.createElement('div');
-            row.className = 'pikmin-row';
-
-            pikminTypes.forEach(type => {
-                const btn = document.createElement('div');
-                btn.className = 'pikmin-btn';
-                btn.innerText = type;
-                btn.setAttribute('data-type', type);
-                
-                const dataKey = `${category.id}_${type}`;
-                
-                if (ownedData[dataKey]) {
-                    btn.classList.add('active');
-                }
-
-                btn.onclick = () => {
-                    const isActive = btn.classList.toggle('active');
-                    ownedData[dataKey] = isActive;
-                    save();
-                    updateCounter(category.id);
-                };
-
-                row.appendChild(btn);
-            });
-
-            group.appendChild(row);
-            container.appendChild(group);
-            updateCounter(category.id);
-        });
-    }
-
-    function updateCounter(categoryId) {
-        let count = 0;
-        pikminTypes.forEach(type => {
-            if (ownedData[`${categoryId}_${type}`]) count++;
-        });
-        const element = document.getElementById(`count-${categoryId}`);
-        if (element) element.innerText = `${count}/8`;
-    }
-
-    function addNewCategoryGlobal() {
-        const input = document.getElementById('new-deco-name');
-        if (!input) return;
-        const name = input.value.trim();
-        if (!name) return;
-
-        const id = 'custom_' + Date.now();
-        categoryList.push({ id: id, name: name }); 
-        
-        save();
-        input.value = "";
-        renderList();
-    }
-
-    function deleteCategoryGlobal(id, name) {
-        if (confirm(`「${name}」を【全員のページ】から完全に削除しますか？`)) {
-            categoryList = categoryList.filter(c => c.id !== id);
-            pikminTypes.forEach(type => {
-                delete ownedData[`${id}_${type}`];
-            });
-            save();
-            renderList();
-        }
-    }
-
-    function save() {
-        try {
-            localStorage.setItem(CATEGORY_KEY, JSON.stringify(categoryList));
-            localStorage.setItem(OWNED_KEY, JSON.stringify(ownedData));
-        } catch (e) {
-            console.error("保存失敗", e);
-        }
-    }
-
-    // アプリ起動
-    initApp();
-    renderList();
-</script>
-
-</body>
-</html>
+        { id: "sweets", name: "スイーツショップ" },
+        { id: "cinema", name: "映画館" },
+        { id: "pharmacy", name: "薬局" },
+        { id: "zoo", name: "動物園" },
+        { id: "stag_beetle", name: "クワガタ" },
+        { id: "acorn", name: "どんぐり" },
+        { id: "waterside", name: "水辺" },
+        { id: "post_office", name: "郵便局" },
+        { id: "art_museum", name: "美術館" },
+        { id: "airport", name: "空港" },
+        { id: "paper_craft", name: "電車のペーパークラフト" },
+        { id: "ticket", name: "切符" },
+        { id: "beach", name: "砂浜" },
+        { id: "hamburger", name: "ハンバーガーショップ" },
+        { id: "bottle_cap", name: "ボトルキャップ" },
+        { id: "snack", name: "お菓子" },
+        { id: "mushroom", name: "キノコ" },
+        { id: "banana", name: "バナナ" },
+        { id: "bakery", name: "ベーカリー" },
+        { id: "hair_salon", name: "美容院" },
+        { id: "fashion", name: "ファッション" },
+        { id: "clover", name: "クローバー" },
+        { id: "four_leaf_clover", name
