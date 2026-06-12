@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みんなのピクミン図鑑 Pro Max</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght=400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fdfaf5;
+            --card-bg: #ffffff;
+            --text: #4a4a4a;
+            --border: #e0d9d0;
+            
+            --red: #ff6b6b;
+            --blue: #54a0ff;
+            --yellow: #feca57;
+            --purple: #a55eea;
+            --white: #f5f6fa;
+            --winged: #ff781f;
+            --rock: #57606f;
+            --ice: #74b9ff;
+        }
+
+        body {
+            font-family: 'Kiwi Maru', serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px 10px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container {
+            width: 100%; max-width: 550px;
+            background: var(--card-bg); padding: 20px;
+            border-radius: 24px; border: 1px solid var(--border);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        h1 { text-align: center; color: #2ed573; font-size: 1.4rem; margin-bottom: 15px; }
+        
+        .manager-box {
+            background: #f1f2f6; border-radius: 20px; padding: 12px; margin-bottom: 15px;
+            font-size: 0.8rem;
+        }
+        .manager-title { font-weight: bold; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .manager-form { display: flex; gap: 6px; margin-bottom: 8px; }
+        .manager-form input { flex: 1; border: 1px solid #ccc; padding: 6px 12px; border-radius: 15px; font-family: inherit; font-size: 0.8rem; outline: none; }
+        .manager-form button { background: #2ed573; color: white; border: none; padding: 6px 12px; border-radius: 15px; font-family: inherit; cursor: pointer; font-weight: bold; }
+        
+        .edit-name-btn { background: #b8976c; color: white; border: none; padding: 4px 10px; border-radius: 12px; font-family: inherit; font-size: 0.7rem; cursor: pointer; }
+
+        .member-tabs {
+            display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;
+            background: #fffcf7; padding: 6px; border-radius: 30px; border: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: transparent; border: none; padding: 6px 14px; border-radius: 20px;
+            font-family: inherit; font-size: 0.85rem; cursor: pointer; color: #888; transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-btn.active {
+            background: #2ed573; color: white; font-weight: bold;
+            box-shadow: 0 2px 6px rgba(46,213,115,0.3);
+        }
+
+        .add-deco-form {
+            background: #fffcf7; padding: 12px; border-radius: 16px;
+            margin-bottom: 25px; display: flex; gap: 8px; border: 1px solid #d2b48c;
+        }
+        .add-deco-form input {
+            flex: 1; border: 1px solid #ccc; padding: 8px 12px;
+            border-radius: 20px; font-family: inherit; font-size: 0.85rem; outline: none;
+        }
+        .add-deco-form button {
+            background: #b8976c; color: white; border: none; padding: 8px 16px;
+            border-radius: 20px; font-family: inherit; font-size: 0.85rem; cursor: pointer; font-weight: bold;
+        }
+
+        .deco-group {
+            background: #ffffff; border: 1px solid var(--border);
+            border-radius: 16px; padding: 15px; margin-bottom: 20px;
+            position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .deco-title { font-weight: bold; font-size: 1rem; color: #b8976c; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; padding-right: 30px; }
+        .counter { font-size: 0.75rem; background: #b8976c; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 10px; }
+        
+        .delete-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: transparent; border: none; color: #ffa5a5;
+            font-size: 1.1rem; cursor: pointer; padding: 0; line-height: 1;
+        }
+
+        .pikmin-row { display: flex; justify-content: space-between; gap: 4px; }
+
+        .pikmin-btn {
+            flex: 1; min-width: 0; aspect-ratio: 1; border-radius: 50%; border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+            font-weight: bold; cursor: pointer; transition: all 0.15s; background: #f5f5f5; color: #b0b0b0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .pikmin-btn.active[data-type="赤"] { background: var(--red); color: white; border-color: var(--red); }
+        .pikmin-btn.active[data-type="黄"] { background: var(--yellow); color: #4a4a4a; border-color: var(--yellow); }
+        .pikmin-btn.active[data-type="青"] { background: var(--blue); color: white; border-color: var(--blue); }
+        .pikmin-btn.active[data-type="紫"] { background: var(--purple); color: white; border-color: var(--purple); }
+        .pikmin-btn.active[data-type="白"] { background: var(--white); color: #ff4757; border-color: #ccc; }
+        .pikmin-btn.active[data-type="羽"] { background: var(--winged); color: white; border-color: var(--winged); }
+        .pikmin-btn.active[data-type="岩"] { background: var(--rock); color: white; border-color: var(--rock); }
+        .pikmin-btn.active[data-type="氷"] { background: var(--ice); color: #2f3542; border-color: var(--ice); }
+
+        .pikmin-btn.active { transform: scale(1.05); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .footer-nav { text-align: center; margin-top: 20px; font-size: 0.75rem; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>みんなのピクミン図鑑 Pro Max</h1>
+    
+    <div class="manager-box">
+        <div class="manager-title">
+            <span>⚙️ メンバー設定</span>
+            <button class="edit-name-btn" onclick="renameCurrentMember()">いま開いている人の名前を変更</button>
+        </div>
+        <div class="manager-form">
+            <input type="text" id="new-member-name" placeholder="新しい家族の名前（例: おじいちゃん）">
+            <button onclick="addNewMember()">メンバー追加</button>
+        </div>
+    </div>
+
+    <div id="tabs-container" class="member-tabs"></div>
+
+    <div class="add-deco-form">
+        <input type="text" id="new-deco-name" placeholder="全員のページに新しいデコを一発追加">
+        <button onclick="addNewCategoryGlobal()">追加</button>
+    </div>
+
+    <div id="list-container"></div>
+    
+    <div class="footer-nav">すべて自動保存されます 🌱</div>
+</div>
+
+<script>
+    // 🚨 【超重要】起動した瞬間、過去のバグの元になる古いピクミンデータをブラウザから完全に消去する
+    const keysToRemove = [
+        'pikmin_bloom_owned_v1', 'pikmin_categories_v2', 'pikmin_owned_v2', 
+        'pikmin_family_data_v3', 'pikmin_family_data_v4', 'pikmin_family_final_data',
+        'pikmin_perfect_family_data', 'pikmin_pro_family_data_v5_list', 'pikmin_pro_family_data_v5_data',
+        'pikmin_perfect_list_final', 'pikmin_perfect_data_final', 'pikmin_ultra_list', 'pikmin_ultra_data'
+    ];
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+
+    // 🌟 これ以降のエラーを絶対に防ぐための、完全に新しく綺麗な保存キー
+    const LIST_KEY = 'pikmin_final_ultimate_list';
+    const CATEGORY_KEY = 'pikmin_final_ultimate_categories';
+    const OWNED_KEY = 'pikmin_final_ultimate_owned';
+
+    const pikminTypes = ["赤", "黄", "青", "紫", "白", "羽", "岩", "氷"];
+    
+    const defaultCategories = [
+        { id: "road", name: "みちばた" },
+        { id: "cafe", name: "カフェ" },
+        { id: "station", name: "駅" },
+        { id: "conbini", name: "コンビニ" },
+        { id: "park", name: "公園" }
+    ];
+
+    let memberList = [];
+    let categoryList = [];
+    let ownedData = {}; 
+    let currentMember = 'me';
+
+    function initApp() {
+        try {
+            memberList = JSON.parse(localStorage.getItem(LIST_KEY));
+            categoryList = JSON.parse(localStorage.getItem(CATEGORY_KEY));
+            ownedData = JSON.parse(localStorage.getItem(OWNED_KEY));
+        } catch(e) {
+            memberList = null;
+            categoryList = null;
+            ownedData = null;
+        }
+
+        if (!memberList || !Array.isArray(memberList) || memberList.length === 0) {
+            memberList = [
+                { key: 'me', name: 'わたし' },
+                { key: 'dad', name: 'お父さん' },
+                { key: 'mom', name: 'お母さん' }
+            ];
+        }
+
+        if (!categoryList || !Array.isArray(categoryList) || categoryList.length === 0) {
+            categoryList = JSON.parse(JSON.stringify(defaultCategories));
+        }
+        
+        if (!ownedData || typeof ownedData !== 'object') {
+            ownedData = {};
+        }
+
+        memberList.forEach(m => {
+            if (!ownedData[m.key]) {
+                ownedData[m.key] = {};
+            }
+        });
+
+        currentMember = memberList[0].key;
+        save();
+    }
+
+    function renderTabs() {
+        const tabsContainer = document.getElementById('tabs-container');
+        if (!tabsContainer) return;
+        tabsContainer.innerHTML = "";
+
+        memberList.forEach(m => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${m.key === currentMember ? 'active' : ''}`;
+            btn.innerText = m.name;
+            btn.onclick = () => {
+                currentMember = m.key;
+                renderTabs();
+                renderList();
+            };
+            tabsContainer.appendChild(btn);
+        });
+    }
+
+    function renderList() {
+        const container = document.getElementById('list-container');
+        if (!container) return;
+        container.innerHTML = "";
+
+        const currentMemberOwned = ownedData[currentMember] || {};
+
+        categoryList.forEach(category => {
+            const group = document.createElement('div');
+            group.className = 'deco-group';
+
+            const titleRow = document.createElement('div');
+            titleRow.className = 'deco-title';
+            titleRow.innerHTML = `<div>${category.name}<span class="counter" id="count-${category.id}">0/8</span></div>`;
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.innerHTML = '×';
+            delBtn.onclick = () => deleteCategoryGlobal(category.id, category.name);
+            group.appendChild(delBtn);
+            group.appendChild(titleRow);
+
+            const row = document.createElement('div');
+            row.className = 'pikmin-row';
+
+            pikminTypes.forEach(type => {
+                const btn = document.createElement('div');
+                btn.className = 'pikmin-btn';
+                btn.innerText = type;
+                btn.setAttribute('data-type', type);
+                
+                const dataKey = `${category.id}_${type}`;
+                
+                if (currentMemberOwned[dataKey]) {
+                    btn.classList.add('active');
+                }
+
+                btn.onclick = () => {
+                    const isActive = btn.classList.toggle('active');
+                    if (!ownedData[currentMember]) ownedData[currentMember] = {};
+                    ownedData[currentMember][dataKey] = isActive;
+                    save();
+                    updateCounter(category.id);
+                };
+
+                row.appendChild(btn);
+            });
+
+            group.appendChild(row);
+            container.appendChild(group);
+            updateCounter(category.id);
+        });
+    }
+
+    function updateCounter(categoryId) {
+        let count = 0;
+        const currentMemberOwned = ownedData[currentMember] || {};
+        pikminTypes.forEach(type => {
+            if (currentMemberOwned[`${categoryId}_${type}`]) count++;
+        });
+        const element = document.getElementById(`count-${categoryId}`);
+        if (element) element.innerText = `${count}/8`;
+    }
+
+    function addNewMember() {
+        const input = document.getElementById('new-member-name');
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) return;
+
+        const key = 'user_' + Date.now();
+        memberList.push({ key: key, name: name });
+        ownedData[key] = {}; 
+
+        save();
+        input.value = "";
+        currentMember = key; 
+        renderTabs();
+        renderList();
+    }
+
+    function renameCurrentMember() {
+        const member = memberList.find(m => m.key === currentMember);
+        if (!member) return;
+
+        const newName = prompt(`「${member.name}」の新しい名前を入力してください:`, member.name);
+        if (newName && newName.trim()) {
+            member.name = newName.trim();
+            save();
+            renderTabs();
+        }
+    }
+
+    function addNewCategoryGlobal() {
+        const input = document.getElementById('new-deco-name');
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) return;
+
+        const id = 'custom_' + Date.now();
+        categoryList.push({ id: id, name: name }); 
+        
+        save();
+        input.value = "";
+        renderList();
+    }
+
+    function deleteCategoryGlobal(id, name) {
+        if (confirm(`「${name}」を【全員のページ】から完全に削除しますか？`)) {
+            categoryList = categoryList.filter(c => c.id !== id);
+            memberList.forEach(m => {
+                if (ownedData[m.key]) {
+                    pikminTypes.forEach(type => {
+                        delete ownedData[m.key][`${id}_${type}`];
+                    });
+                }
+            });
+            save();
+            renderList();
+        }
+    }
+
+    function save() {
+        try {
+            localStorage.setItem(LIST_KEY, JSON.stringify(memberList));
+            localStorage.setItem(CATEGORY_KEY, JSON.stringify(categoryList));
+            localStorage.setItem(OWNED_KEY, JSON.stringify(ownedData));
+        } catch (e) {
+            console.error("保存失敗", e);
+        }
+    }
+
+    // アプリ初期起動
+    initApp();
+    renderTabs();
+    renderList();
+</script>
+
+</body>
+</html>
