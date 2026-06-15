@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みんなのピクミン図鑑 Pro Max</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght=400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fdfaf5;
+            --card-bg: #ffffff;
+            --text: #4a4a4a;
+            --border: #e0d9d0;
+            
+            --red: #ff6b6b;
+            --blue: #54a0ff;
+            --yellow: #feca57;
+            --purple: #a55eea;
+            --white: #f5f6fa;
+            --winged: #ff781f;
+            --rock: #57606f;
+            --ice: #74b9ff;
+        }
+
+        body {
+            font-family: 'Kiwi Maru', serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px 10px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container {
+            width: 100%; max-width: 550px;
+            background: var(--card-bg); padding: 20px;
+            border-radius: 24px; border: 1px solid var(--border);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        h1 { text-align: center; color: #2ed573; font-size: 1.4rem; margin-bottom: 25px; }
+
+        .add-deco-form {
+            background: #fffcf7; padding: 12px; border-radius: 16px;
+            margin-bottom: 25px; display: flex; gap: 8px; border: 1px solid #d2b48c;
+        }
+        .add-deco-form input {
+            flex: 1; border: 1px solid #ccc; padding: 8px 12px;
+            border-radius: 20px; font-family: inherit; font-size: 0.85rem; outline: none;
+        }
+        .add-deco-form button {
+            background: #b8976c; color: white; border: none; padding: 8px 16px;
+            border-radius: 20px; font-family: inherit; font-size: 0.85rem; cursor: pointer; font-weight: bold;
+        }
+
+        .deco-group {
+            background: #ffffff; border: 1px solid var(--border);
+            border-radius: 16px; padding: 15px; margin-bottom: 20px;
+            position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .deco-title { font-weight: bold; font-size: 1rem; color: #b8976c; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; padding-right: 30px; }
+        .counter { font-size: 0.75rem; background: #b8976c; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 10px; }
+        
+        .delete-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: transparent; border: none; color: #ffa5a5;
+            font-size: 1.1rem; cursor: pointer; padding: 0; line-height: 1;
+        }
+
+        .pikmin-row { display: flex; justify-content: space-between; gap: 4px; }
+
+        .pikmin-btn {
+            flex: 1; min-width: 0; aspect-ratio: 1; border-radius: 50%; border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+            font-weight: bold; cursor: pointer; transition: all 0.15s; background: #f5f5f5; color: #b0b0b0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .pikmin-btn.active[data-type="赤"] { background: var(--red); color: white; border-color: var(--red); }
+        .pikmin-btn.active[data-type="黄"] { background: var(--yellow); color: #4a4a4a; border-color: var(--yellow); }
+        .pikmin-btn.active[data-type="青"] { background: var(--blue); color: white; border-color: var(--blue); }
+        .pikmin-btn.active[data-type="紫"] { background: var(--purple); color: white; border-color: var(--purple); }
+        .pikmin-btn.active[data-type="白"] { background: var(--white); color: #ff4757; border-color: #ccc; }
+        .pikmin-btn.active[data-type="羽"] { background: var(--winged); color: white; border-color: var(--winged); }
+        .pikmin-btn.active[data-type="岩"] { background: var(--rock); color: white; border-color: var(--rock); }
+        .pikmin-btn.active[data-type="氷"] { background: var(--ice); color: #2f3542; border-color: var(--ice); }
+
+        .pikmin-btn.active { transform: scale(1.05); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .footer-nav { text-align: center; margin-top: 20px; font-size: 0.75rem; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>みんなのピクミン図鑑 Pro Max</h1>
+
+    <div class="add-deco-form">
+        <input type="text" id="new-deco-name" placeholder="全員のページに新しいデコを一発追加">
+        <button onclick="addNewCategoryGlobal()">追加</button>
+    </div>
+
+    <div id="list-container"></div>
+    
+    <div class="footer-nav">すべて自動保存されます 🌱</div>
+</div>
+
+<script>
+    // 過去の古いデータ構造を完全にお掃除
+    const keysToRemove = [
+        'pikmin_bloom_owned_v1', 'pikmin_categories_v2', 'pikmin_owned_v2', 
+        'pikmin_family_data_v3', 'pikmin_family_data_v4', 'pikmin_family_final_data',
+        'pikmin_perfect_family_data', 'pikmin_pro_family_data_v5_list', 'pikmin_pro_family_data_v5_data',
+        'pikmin_perfect_list_final', 'pikmin_perfect_data_final', 'pikmin_ultra_list', 'pikmin_ultra_data',
+        'pikmin_final_ultimate_owned', 'pikmin_final_ultimate_list', 'pikmin_final_ultimate_categories'
+    ];
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+
+    // 新しいクリーンな保存キー
+    const CATEGORY_KEY = 'pikmin_master_categories_v2';
+    const OWNED_KEY = 'pikmin_master_owned_v2';
+
+    const pikminTypes = ["赤", "黄", "青", "紫", "白", "羽", "岩", "氷"];
+    
+    // 💡 いただいた全51個のカテゴリを順番通りに完全網羅しました！
+    const defaultCategories = [
+        { id: "restaurant", name: "レストラン" },
+        { id: "cafe", name: "カフェ" },
+        { id: "sweets", name: "スイーツショップ" },
+        { id: "cinema", name: "映画館" },
+        { id: "pharmacy", name: "薬局" },
+        { id: "zoo", name: "動物園" },
+        { id: "stag_beetle", name: "クワガタ" },
+        { id: "acorn", name: "どんぐり" },
+        { id: "waterside", name: "水辺" },
+        { id: "post_office", name: "郵便局" },
+        { id: "art_museum", name: "美術館" },
+        { id: "airport", name: "空港" },
+        { id: "paper_craft", name: "電車のペーパークラフト" },
+        { id: "ticket", name: "切符" },
+        { id: "beach", name: "砂浜" },
+        { id: "hamburger", name: "ハンバーガーショップ" },
+        { id: "bottle_cap", name: "ボトルキャップ" },
+        { id: "snack", name: "お菓子" },
+        { id: "mushroom", name: "キノコ" },
+        { id: "banana", name: "バナナ" },
+        { id: "bakery", name: "ベーカリー" },
+        { id: "hair_salon", name: "美容院" },
+        { id: "fashion", name: "ファッション" },
+        { id: "clover", name: "クローバー" },
+        { id: "four_leaf_clover", name: "四つ葉のクローバー" },
+        { id: "library", name: "図書館" },
+        { id: "sticker", name: "シール" },
+        { id: "coin", name: "コイン" },
+        { id: "sushi", name: "お寿司屋さん" },
+        { id: "mountain", name: "山" },
+        { id: "stadium", name: "スタジアム" },
+        { id: "rainy_day", name: "雨の日" },
+        { id: "snowy_day", name: "雪の日" },
+        { id: "theme_park", name: "テーマパーク" },
+        { id: "bus_stop", name: "バスのりば" },
+        { id: "italian", name: "イタリア料理" },
+        { id: "ramen", name: "ラーメン" },
+        { id: "bridge", name: "橋" },
+        { id: "hotel", name: "ホテル" },
+        { id: "cosmetics", name: "コスメショップ" },
+        { id: "daikichi", name: "大吉" },
+        { id: "kichi", name: "吉" },
+        { id: "chukichi", name: "中吉" },
+        { id: "appliance_store", name: "電気屋さん" },
+        { id: "curry", name: "カレー屋さん" },
+        { id: "home_center", name: "ホームセンター" },
+        { id: "university", name: "大学" },
+        { id: "mexican", name: "メキシコ料理店" },
+        { id: "laundry", name: "ランドリー・クリーニング" },
+        { id: "korean", name: "韓国料理店" },
+        { id: "stationery", name: "文房具屋さん" }
+    ];
+
+    let categoryList = [];
+    let ownedData = {}; 
+
+    function initApp() {
+        try {
+            categoryList = JSON.parse(localStorage.getItem(CATEGORY_KEY));
+            ownedData = JSON.parse(localStorage.getItem(OWNED_KEY));
+        } catch(e) {
+            categoryList = null;
+            ownedData = null;
+        }
+
+        // 常に最新のデフォルトリストを優先して同期するための処理
+        if (!categoryList || !Array.isArray(categoryList) || categoryList.length === 0) {
+            categoryList = JSON.parse(JSON.stringify(defaultCategories));
+        } else {
+            // 既存のカスタムデコを残しつつ、足りないデフォルトデコを補完
+            defaultCategories.forEach(def => {
+                if (!categoryList.some(c => c.id === def.id)) {
+                    categoryList.push(def);
+                }
+            });
+        }
+        
+        if (!ownedData || typeof ownedData !== 'object') {
+            ownedData = {};
+        }
+        save();
+    }
+
+    function renderList() {
+        const container = document.getElementById('list-container');
+        if (!container) return;
+        container.innerHTML = "";
+
+        categoryList.forEach(category => {
+            const group = document.createElement('div');
+            group.className = 'deco-group';
+
+            const titleRow = document.createElement('div');
+            titleRow.className = 'deco-title';
+            titleRow.innerHTML = `<div>${category.name}<span class="counter" id="count-${category.id}">0/8</span></div>`;
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.innerHTML = '×';
+            delBtn.onclick = () => deleteCategoryGlobal(category.id, category.name);
+            group.appendChild(delBtn);
+            group.appendChild(titleRow);
+
+            const row = document.createElement('div');
+            row.className = 'pikmin-row';
+
+            pikminTypes.forEach(type => {
+                const btn = document.createElement('div');
+                btn.className = 'pikmin-btn';
+                btn.innerText = type;
+                btn.setAttribute('data-type', type);
+                
+                const dataKey = `${category.id}_${type}`;
+                
+                if (ownedData[dataKey]) {
+                    btn.classList.add('active');
+                }
+
+                btn.onclick = () => {
+                    const isActive = btn.classList.toggle('active');
+                    ownedData[dataKey] = isActive;
+                    save();
+                    updateCounter(category.id);
+                };
+
+                row.appendChild(btn);
+            });
+
+            group.appendChild(row);
+            container.appendChild(group);
+            updateCounter(category.id);
+        });
+    }
+
+    function updateCounter(categoryId) {
+        let count = 0;
+        pikminTypes.forEach(type => {
+            if (ownedData[`${categoryId}_${type}`]) count++;
+        });
+        const element = document.getElementById(`count-${categoryId}`);
+        if (element) element.innerText = `${count}/8`;
+    }
+
+    function addNewCategoryGlobal() {
+        const input = document.getElementById('new-deco-name');
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) return;
+
+        const id = 'custom_' + Date.now();
+        categoryList.push({ id: id, name: name }); 
+        
+        save();
+        input.value = "";
+        renderList();
+    }
+
+    function deleteCategoryGlobal(id, name) {
+        if (confirm(`「${name}」を【全員のページ】から完全に削除しますか？`)) {
+            categoryList = categoryList.filter(c => c.id !== id);
+            pikminTypes.forEach(type => {
+                delete ownedData[`${id}_${type}`];
+            });
+            save();
+            renderList();
+        }
+    }
+
+    function save() {
+        try {
+            localStorage.setItem(CATEGORY_KEY, JSON.stringify(categoryList));
+            localStorage.setItem(OWNED_KEY, JSON.stringify(ownedData));
+        } catch (e) {
+            console.error("保存失敗", e);
+        }
+    }
+
+    // アプリ起動
+    initApp();
+    renderList();
+</script>
+
+</body>
+</html>
